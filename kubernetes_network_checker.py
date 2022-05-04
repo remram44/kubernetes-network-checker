@@ -154,6 +154,7 @@ async def do_check(api, *, image, namespace):
         logger.error("No pods are ready")
         raise
     logger.info("%d pods started", len(ready))
+    ready_nodes = [name[len('netcheck-'):] for name in ready]
 
     # The test
     async with k8s_stream.WsApiClient() as api_ws:
@@ -181,7 +182,7 @@ async def do_check(api, *, image, namespace):
                 reachability_matrix[(from_node, to_node)] = 'FAIL'
 
         # Run the test, a few at a time
-        targets = generate_test_pairs(node_names)
+        targets = generate_test_pairs(ready_nodes)
         await apply_async(check_pair, targets, max_tasks=10)
 
     # Print report
@@ -192,7 +193,11 @@ async def do_check(api, *, image, namespace):
             if from_node == to_node:
                 row.append('')
             else:
-                row.append(reachability_matrix[(from_node, to_node)])
+                try:
+                    status = reachability_matrix[(from_node, to_node)]
+                except KeyError:
+                    status = 'NOT RUN'
+                row.append(status)
         table.append(row)
     logger.info(
         "Test complete:\n%s",
