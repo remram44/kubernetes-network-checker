@@ -26,4 +26,4 @@ worker6   ok         ok         ok         ok         ok
 
 You can either run the tool on your machine (use `--config`) or run it inside the cluster as a pod (it will use in-cluster configuration, e.g. a service account).
 
-You can either run it once (use `--once`) or let it run continuously, in which case it will run a check every 15 minutes.
+You can either run it once (use `--once`) or let it run continuously, in which case it will run a check every 15 minutes. In this case it will also expose metrics (for Prometheus) which you can use for alerting.

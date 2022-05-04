@@ -5,11 +5,26 @@ import kubernetes_asyncio.client as k8s_client
 import kubernetes_asyncio.config as k8s_config
 import kubernetes_asyncio.stream as k8s_stream
 import logging
+import prometheus_client
 from tabulate import tabulate
 import time
 
 
 logger = logging.getLogger(__name__)
+
+
+PROM_NETWORK_ISSUES = prometheus_client.Gauge(
+    'netcheck_issues',
+    "Number of detected network connectivity issues",
+)
+PROM_TESTED_NODES = prometheus_client.Gauge(
+    'netcheck_tested_nodes',
+    "Number of nodes tested",
+)
+PROM_TOTAL_NODES = prometheus_client.Gauge(
+    'netcheck_total_nodes',
+    "Number of nodes in cluster",
+)
 
 
 async def apply_async(func, iterable, *, max_tasks):
@@ -53,6 +68,7 @@ async def do_check(api, *, image, namespace):
     nodes = await v1.list_node()
     node_names = sorted([node.metadata.name for node in nodes.items])
     logger.info("Discovered %d nodes", len(node_names))
+    PROM_TOTAL_NODES.set(len(node_names))
 
     # Start pods on all nodes
     for node in node_names:
@@ -185,6 +201,14 @@ async def do_check(api, *, image, namespace):
         targets = generate_test_pairs(ready_nodes)
         await apply_async(check_pair, targets, max_tasks=10)
 
+    # Update metric
+    issues = 0
+    for value in reachability_matrix.values():
+        if value != 'ok':
+            issues += 1
+    PROM_NETWORK_ISSUES.set(issues)
+    PROM_TESTED_NODES.set(len(ready_nodes))
+
     # Print report
     table = []
     for from_node in node_names:
@@ -252,7 +276,13 @@ def main():
     parser.add_argument('--image', nargs=1, default=['nginx'])
     parser.add_argument('--namespace', nargs=1, default=['default'])
     parser.add_argument('--config', nargs=1)
+    parser.add_argument('--metrics-port', nargs=1, default=['8080'])
     args = parser.parse_args()
+
+    if not args.once:
+        metrics_port = int(args.metrics_port[0], 10)
+        logger.info("Serving metrics on port %d", metrics_port)
+        prometheus_client.start_http_server(metrics_port)
 
     asyncio.run(amain(
         once=args.once,
