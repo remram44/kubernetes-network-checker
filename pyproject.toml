@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "kubernetes-network-checker"
+version = "0.1.0"
+description = "Checks network connectivity between pods and services on all hosts"
+authors = ["Remi Rampin <remi@rampin.org>"]
+license = "BSD-3-Clause"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+kubernetes-asyncio = "*"
+tabulate = "*"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+kubernetes-network-checker = "kubernetes_network_checker:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
