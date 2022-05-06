@@ -1,0 +1,100 @@
+---
+# The service account used by netcheck
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: netcheck
+  labels:
+    app: netcheck
+automountServiceAccountToken: true
+---
+# Cluster role giving read access to nodes
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: netcheck-cluster-role
+  labels:
+    app: netcheck
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+# Role giving read/write access to pods and services in the namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: netcheck-ns-role
+  labels:
+    app: netcheck
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/attach", "pods/exec", "pods/log", "pods/status", "services"]
+    verbs: ["get", "watch", "list", "create", "delete", "update", "patch", "deletecollection"]
+---
+# Bind the service account to the cluster role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netcheck
+  labels:
+    app: netcheck
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netcheck-cluster-role
+subjects:
+  - kind: ServiceAccount
+    namespace: netcheck
+    name: netcheck
+---
+# Bind the service account to the (namespaced) role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: netcheck
+  labels:
+    app: netcheck
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: netcheck-ns-role
+subjects:
+  - kind: ServiceAccount
+    name: netcheck
+---
+# Deployment for the netcheck program
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netcheck
+  labels:
+    app: netcheck
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: netcheck
+      component: checker
+  template:
+    metadata:
+      labels:
+        app: netcheck
+        component: checker
+    spec:
+      serviceAccountName: netcheck
+      containers:
+        - name: checker
+          image: quay.io/remram44/kubernetes-network-checker
+          # Run test pods in the same namespace we are running in
+          args: [sh, -c, "kubernetes-network-checker --namespace $NETCHECK_NAMESPACE"]
+          env:
+            - name: NETCHECK_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: metrics
+              containerPort: 8080
