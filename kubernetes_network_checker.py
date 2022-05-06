@@ -78,6 +78,7 @@ async def do_check(api, *, image, namespace):
                 name=name,
                 labels={
                     'app': 'netcheck',
+                    'component': 'test',
                     'run': name,
                 },
             ),
@@ -106,12 +107,14 @@ async def do_check(api, *, image, namespace):
                 name=name,
                 labels={
                     'app': 'netcheck',
+                    'component': 'test',
                     'run': name,
                 },
             ),
             spec=k8s_client.V1ServiceSpec(
                 selector={
                     'app': 'netcheck',
+                    'component': 'test',
                     'run': name,
                 },
                 ports=[
@@ -138,7 +141,7 @@ async def do_check(api, *, image, namespace):
 
         pods = await v1.list_namespaced_pod(
             namespace=namespace,
-            label_selector='app=netcheck',
+            label_selector='app=netcheck,component=test',
         )
         starting = set()
         ready = set()
@@ -234,7 +237,7 @@ async def cleanup(api, *, namespace):
 
     pods = await v1.list_namespaced_pod(
         namespace=namespace,
-        label_selector='app=netcheck',
+        label_selector='app=netcheck,component=test',
     )
     logger.info("Deleting %d pods...", len(pods.items))
     for pod in pods.items:
@@ -245,7 +248,7 @@ async def cleanup(api, *, namespace):
 
     svcs = await v1.list_namespaced_service(
         namespace=namespace,
-        label_selector='app=netcheck',
+        label_selector='app=netcheck,component=test',
     )
     logger.info("Deleting %d services...", len(svcs.items))
     for svc in svcs.items:
