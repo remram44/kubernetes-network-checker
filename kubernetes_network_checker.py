@@ -61,6 +61,10 @@ def generate_test_pairs(nodes):
             yield node1, node2
 
 
+def sanitize_name(name):
+    return name.replace('.', '-')
+
+
 async def do_check(api, *, image, namespace):
     v1 = k8s_client.CoreV1Api(api)
 
@@ -72,7 +76,7 @@ async def do_check(api, *, image, namespace):
 
     # Start pods on all nodes
     for node in node_names:
-        name = 'netcheck-%s' % node
+        name = 'netcheck-%s' % sanitize_name(node)
         pod = k8s_client.V1Pod(
             metadata=k8s_client.V1ObjectMeta(
                 name=name,
@@ -101,7 +105,7 @@ async def do_check(api, *, image, namespace):
 
     # Start services for all pods
     for node in node_names:
-        name = 'netcheck-%s' % node
+        name = 'netcheck-%s' % sanitize_name(node)
         svc = k8s_client.V1Service(
             metadata=k8s_client.V1ObjectMeta(
                 name=name,
