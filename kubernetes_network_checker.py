@@ -148,11 +148,11 @@ async def do_check(api, *, image, namespace):
         failed = set()
         for pod in pods.items:
             if pod.status.phase == 'Pending':
-                starting.add(pod.metadata.name)
+                starting.add(pod.spec.node_name)
             elif pod.status.phase == 'Running':
-                ready.add(pod.metadata.name)
+                ready.add(pod.spec.node_name)
             else:
-                failed.add(pod.metadata.name)
+                failed.add(pod.spec.node_name)
 
         if starting:
             logger.info("Waiting for pods to start...")
@@ -173,7 +173,6 @@ async def do_check(api, *, image, namespace):
         logger.error("No pods are ready")
         raise
     logger.info("%d pods started", len(ready))
-    ready_nodes = [name[len('netcheck-'):] for name in ready]
 
     # The test
     async with k8s_stream.WsApiClient() as api_ws:
@@ -201,7 +200,7 @@ async def do_check(api, *, image, namespace):
                 reachability_matrix[(from_node, to_node)] = 'FAIL'
 
         # Run the test, a few at a time
-        targets = generate_test_pairs(ready_nodes)
+        targets = generate_test_pairs(ready)
         await apply_async(check_pair, targets, max_tasks=10)
 
     # Update metric
@@ -210,7 +209,7 @@ async def do_check(api, *, image, namespace):
         if value != 'ok':
             issues += 1
     PROM_NETWORK_ISSUES.set(issues)
-    PROM_TESTED_NODES.set(len(ready_nodes))
+    PROM_TESTED_NODES.set(len(ready))
 
     # Print report
     table = []
