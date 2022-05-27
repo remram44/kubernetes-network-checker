@@ -56,8 +56,6 @@ async def apply_async(func, iterable, *, max_tasks):
 def generate_test_pairs(nodes):
     for node1 in nodes:
         for node2 in nodes:
-            if node1 == node2:
-                continue
             yield node1, node2
 
 
@@ -254,14 +252,11 @@ async def do_check(api, *, image, namespace):
     for from_node in node_names:
         row = [from_node]
         for to_node in node_names:
-            if from_node == to_node:
-                row.append('')
-            else:
-                try:
-                    status = reachability_matrix[(from_node, to_node)]
-                except KeyError:
-                    status = 'NOT RUN'
-                row.append(status)
+            try:
+                status = reachability_matrix[(from_node, to_node)]
+            except KeyError:
+                status = 'NOT RUN'
+            row.append(status)
         table.append(row)
     logger.info(
         "Test complete:\n%s",
