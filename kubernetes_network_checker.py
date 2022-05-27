@@ -97,10 +97,16 @@ async def do_check(api, *, image, namespace):
                 restart_policy='Always',
             ),
         )
-        await v1.create_namespaced_pod(
-            namespace=namespace,
-            body=pod,
-        )
+        try:
+            await v1.create_namespaced_pod(
+                namespace=namespace,
+                body=pod,
+            )
+        except k8s_client.ApiException as e:
+            if e.status == 409:
+                logger.warning("409 Conflict creating pod on node %r", node)
+            else:
+                raise
     logger.info("Created pods")
 
     # Start services for all pods
@@ -130,10 +136,19 @@ async def do_check(api, *, image, namespace):
                 ],
             ),
         )
-        await v1.create_namespaced_service(
-            namespace=namespace,
-            body=svc,
-        )
+        try:
+            await v1.create_namespaced_service(
+                namespace=namespace,
+                body=svc,
+            )
+        except k8s_client.ApiException as e:
+            if e.status == 409:
+                logger.warning(
+                    "409 Conflict creating service on node %r",
+                    node,
+                )
+            else:
+                raise
     logger.info("Created services")
 
     start = time.time()
