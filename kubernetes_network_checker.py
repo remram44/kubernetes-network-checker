@@ -7,6 +7,7 @@ import kubernetes_asyncio.stream as k8s_stream
 import logging
 import prometheus_client
 from tabulate import tabulate
+import textwrap
 import time
 
 
@@ -218,22 +219,39 @@ async def do_check(api, *, image, namespace):
 
         async def check_pair(from_node, to_node):
             logger.info("Testing %s -> %s", from_node, to_node)
+            script = textwrap.dedent(
+                r'''
+                curl \
+                    -s -o /dev/null \
+                    -w netcheck_svc=%{http_code} \
+                    --connect-timeout 10 \
+                    http://__SERVICE__/
+                echo
+                curl \
+                    -s -o /dev/null \
+                    -w netcheck_pod=%{http_code} \
+                    --connect-timeout 10 \
+                    http://__POD__/
+                echo
+                '''
+                .replace('__SERVICE__', 'netcheck-%s' % to_node)
+                .replace('__POD__', pod.status.pod_ip)
+            )
             resp = await v1_ws.connect_get_namespaced_pod_exec(
                 name='netcheck-%s' % from_node,
                 namespace=namespace,
-                command=[
-                    'curl',
-                    '-s', '-o', '/dev/null',
-                    '-w', 'netcheck_status=%{http_code}',
-                    '--connect-timeout', '10',
-                    'http://netcheck-%s/' % to_node,
-                ],
+                command=['sh', '-c', script],
                 stderr=True, stdin=False, stdout=True, tty=False,
             )
-            if resp == 'netcheck_status=200':
-                reachability_matrix[(from_node, to_node)] = 'ok'
+            result = reachability_matrix.setdefault((from_node, to_node), {})
+            if 'netcheck_svc=200' in resp:
+                result['svc'] = 'ok'
             else:
-                reachability_matrix[(from_node, to_node)] = 'FAIL'
+                result['svc'] = 'FAIL'
+            if 'netcheck_pod=200' in resp:
+                result['pod'] = 'ok'
+            else:
+                result['pod'] = 'FAIL'
 
         # Run the test, a few at a time
         targets = generate_test_pairs(ready)
@@ -241,8 +259,8 @@ async def do_check(api, *, image, namespace):
 
     # Update metric
     issues = 0
-    for value in reachability_matrix.values():
-        if value != 'ok':
+    for result in reachability_matrix.values():
+        if not all(s == 'ok' for s in result.values()):
             issues += 1
     PROM_NETWORK_ISSUES.set(issues)
     PROM_TESTED_NODES.set(len(ready))
@@ -256,6 +274,12 @@ async def do_check(api, *, image, namespace):
                 status = reachability_matrix[(from_node, to_node)]
             except KeyError:
                 status = 'NOT RUN'
+            else:
+                if all(s == 'ok' for s in status.values()):
+                    status = 'ok'
+                else:
+                    errors = sorted(k for k, v in status.items() if v != 'ok')
+                    status = ",".join(errors).upper()
             row.append(status)
         table.append(row)
     logger.info(
