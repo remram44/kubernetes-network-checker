@@ -152,6 +152,7 @@ async def do_check(api, *, image, namespace):
     logger.info("Created services")
 
     start = time.time()
+    scheduling = set()
     starting = set()
     ready = set()
     failed = set()
@@ -162,26 +163,44 @@ async def do_check(api, *, image, namespace):
             namespace=namespace,
             label_selector='app=netcheck,component=test',
         )
+        scheduling = set()
         starting = set()
         ready = set()
         failed = set()
         for pod in pods.items:
             if pod.status.phase == 'Pending':
-                starting.add(pod.spec.node_name)
+                if pod.status.start_time:
+                    starting.add(pod.spec.node_name)
+                else:
+                    scheduling.add(pod.spec.node_name)
             elif pod.status.phase == 'Running':
                 ready.add(pod.spec.node_name)
             else:
                 failed.add(pod.spec.node_name)
 
-        if starting:
-            logger.info("Waiting for pods to start...")
+        if time.time() < start + 15 and scheduling:
+            pass  # Wait 15s for pods to be scheduled
+        elif starting:
+            pass  # Wait the full 2min for pods to start
         else:
             break
+
+        logger.info(
+            "Waiting for pods to start...")
+        logger.debug(
+            "scheduling % 3d, starting % 3d, ready % 3d, failed % 3d",
+            len(scheduling), len(starting), len(ready), len(failed),
+        )
 
     if failed:
         logger.error(
             "Some pods have failed: %s",
             ", ".join(sorted(failed)),
+        )
+    if scheduling:
+        logger.error(
+            "Some pods were never scheduled: %s",
+            ", ".join(sorted(scheduling))
         )
     if starting:
         logger.error(
