@@ -6,7 +6,7 @@ authors = ["Remi Rampin <remi@rampin.org>"]
 license = "BSD-3-Clause"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 kubernetes-asyncio = "*"
 prometheus-client = "*"
 tabulate = "*"

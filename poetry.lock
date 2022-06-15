@@ -53,11 +53,11 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "certifi"
-version = "2021.10.8"
+version = "2022.6.15"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [[package]]
 name = "charset-normalizer"
@@ -88,7 +88,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "kubernetes-asyncio"
-version = "22.6.4"
+version = "22.6.5"
 description = "Kubernetes asynchronous python client"
 category = "main"
 optional = false
@@ -186,8 +186,8 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.8"
-content-hash = "27dcc269aefcab91b33a71039d3ddb189c653893c038bb5705596649cc7f49fa"
+python-versions = "^3.9"
+content-hash = "707a9182dc64ac39eec302f81fbdd7a40e33360d3a9a4e5de88de9cc3466d976"
 
 [metadata.files]
 aiohttp = [
@@ -277,8 +277,8 @@ attrs = [
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
 ]
 certifi = [
-    {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
-    {file = "certifi-2021.10.8.tar.gz", hash = "sha256:78884e7c1d4b00ce3cea67b44566851c4343c120abd683433ce934a68ea58872"},
+    {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
+    {file = "certifi-2022.6.15.tar.gz", hash = "sha256:84c85a9078b11105f04f3036a9482ae10e4621616db313fe045dd24743a0820d"},
 ]
 charset-normalizer = [
     {file = "charset-normalizer-2.0.12.tar.gz", hash = "sha256:2857e29ff0d34db842cd7ca3230549d1a697f96ee6d3fb071cfa6c7393832597"},
@@ -350,8 +350,8 @@ idna = [
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 kubernetes-asyncio = [
-    {file = "kubernetes_asyncio-22.6.4-py2.py3-none-any.whl", hash = "sha256:a552211c72c7452999d7bf3b09326a0557899d749b001743aa63f7fc3fcbcb2c"},
-    {file = "kubernetes_asyncio-22.6.4.tar.gz", hash = "sha256:b372ccdac9ddda157da1d1368c6ad43c2fa05249721522d5f07873f245410e00"},
+    {file = "kubernetes_asyncio-22.6.5-py3-none-any.whl", hash = "sha256:1d0e7c30015296454d23cd52214bb946c61585785c17bc4a3742478c1a103421"},
+    {file = "kubernetes_asyncio-22.6.5.tar.gz", hash = "sha256:f52877a5460438f4af789f0376893e92aed0a15b11357e887635543f19ed55d1"},
 ]
 multidict = [
     {file = "multidict-6.0.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:0b9e95a740109c6047602f4db4da9949e6c5945cefbad34a1299775ddc9a62e2"},
