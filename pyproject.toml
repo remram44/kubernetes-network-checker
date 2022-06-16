@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kubernetes-network-checker"
-version = "0.0.0"
+version = "0.3.0"
 description = "Checks network connectivity between pods and services on all hosts"
 authors = ["Remi Rampin <remi@rampin.org>"]
 license = "BSD-3-Clause"
