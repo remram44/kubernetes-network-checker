@@ -237,6 +237,7 @@ async def do_check(api, *, image, namespace):
                 .replace('__SERVICE__', 'netcheck-%s' % to_node)
                 .replace('__POD__', pod.status.pod_ip)
             )
+            result = reachability_matrix.setdefault((from_node, to_node), {})
             try:
                 resp = await v1_ws.connect_get_namespaced_pod_exec(
                     name='netcheck-%s' % from_node,
@@ -245,16 +246,17 @@ async def do_check(api, *, image, namespace):
                     stderr=True, stdin=False, stdout=True, tty=False,
                 )
             except Exception:
-                resp = 'error'
-            result = reachability_matrix.setdefault((from_node, to_node), {})
-            if 'netcheck_svc=200' in resp:
-                result['svc'] = 'ok'
+                result['svc'] = 'ERROR'
+                result['pod'] = 'ERROR'
             else:
-                result['svc'] = 'FAIL'
-            if 'netcheck_pod=200' in resp:
-                result['pod'] = 'ok'
-            else:
-                result['pod'] = 'FAIL'
+                if 'netcheck_svc=200' in resp:
+                    result['svc'] = 'ok'
+                else:
+                    result['svc'] = 'FAIL'
+                if 'netcheck_pod=200' in resp:
+                    result['pod'] = 'ok'
+                else:
+                    result['pod'] = 'FAIL'
 
         # Run the test, a few at a time
         targets = generate_test_pairs(ready)
