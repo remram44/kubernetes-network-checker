@@ -237,12 +237,15 @@ async def do_check(api, *, image, namespace):
                 .replace('__SERVICE__', 'netcheck-%s' % to_node)
                 .replace('__POD__', pod.status.pod_ip)
             )
-            resp = await v1_ws.connect_get_namespaced_pod_exec(
-                name='netcheck-%s' % from_node,
-                namespace=namespace,
-                command=['sh', '-c', script],
-                stderr=True, stdin=False, stdout=True, tty=False,
-            )
+            try:
+                resp = await v1_ws.connect_get_namespaced_pod_exec(
+                    name='netcheck-%s' % from_node,
+                    namespace=namespace,
+                    command=['sh', '-c', script],
+                    stderr=True, stdin=False, stdout=True, tty=False,
+                )
+            except Exception:
+                resp = 'error'
             result = reachability_matrix.setdefault((from_node, to_node), {})
             if 'netcheck_svc=200' in resp:
                 result['svc'] = 'ok'
