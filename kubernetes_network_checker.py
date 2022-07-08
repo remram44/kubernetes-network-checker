@@ -224,13 +224,13 @@ async def do_check(api, *, image, namespace):
                 curl \
                     -s -o /dev/null \
                     -w netcheck_svc=%{http_code} \
-                    --connect-timeout 10 \
+                    --max-time 10 \
                     http://__SERVICE__/
                 echo
                 curl \
                     -s -o /dev/null \
                     -w netcheck_pod=%{http_code} \
-                    --connect-timeout 10 \
+                    --max-time 10 \
                     http://__POD__/
                 echo
                 '''
