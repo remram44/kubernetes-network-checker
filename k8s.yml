@@ -89,7 +89,7 @@ spec:
         - name: checker
           image: quay.io/remram44/kubernetes-network-checker:v0.3
           # Run test pods in the same namespace we are running in
-          args: [sh, -c, "kubernetes-network-checker --namespace $NETCHECK_NAMESPACE"]
+          args: ["--namespace", "$(NETCHECK_NAMESPACE)"]
           env:
             - name: NETCHECK_NAMESPACE
               valueFrom:

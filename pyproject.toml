@@ -13,9 +13,6 @@ tabulate = "*"
 
 [tool.poetry.dev-dependencies]
 
-[tool.poetry.scripts]
-kubernetes-network-checker = "kubernetes_network_checker:main"
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

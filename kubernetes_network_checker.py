@@ -11,7 +11,7 @@ import textwrap
 import time
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('kubernetes_network_checker')
 
 
 PROM_NETWORK_ISSUES = prometheus_client.Gauge(
@@ -379,3 +379,7 @@ async def amain(*, once=False, image, namespace, config=None):
             break
 
         await asyncio.sleep(15 * 60)
+
+
+if __name__ == '__main__':
+    main()

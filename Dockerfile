@@ -34,5 +34,5 @@ USER 998
 EXPOSE 8080
 
 # If argument is a command, run it, otherwise pass arguments to app
-ENTRYPOINT ["/bin/sh", "-c", "if type \"$1\" >/dev/null 2>&1 ; then exec \"$@\"; else exec kubernetes-network-checker \"$@\"; fi", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "if type \"$1\" >/dev/null 2>&1 ; then exec \"$@\"; else exec python3 kubernetes_network_checker.py \"$@\"; fi", "--"]
 CMD []
