@@ -26,6 +26,10 @@ PROM_TOTAL_NODES = prometheus_client.Gauge(
     'netcheck_total_nodes',
     "Number of nodes in cluster",
 )
+PROM_RUNS = prometheus_client.Counter(
+    'netcheck_runs',
+    "Number of times we ran the check",
+)
 
 
 async def apply_async(func, iterable, *, max_tasks):
@@ -372,6 +376,7 @@ async def amain(*, once=False, image, namespace, config=None):
         async with k8s_client.ApiClient() as api:
             try:
                 await do_check(api, image=image, namespace=namespace)
+                PROM_RUNS.inc()
             finally:
                 await cleanup(api, namespace=namespace)
 
