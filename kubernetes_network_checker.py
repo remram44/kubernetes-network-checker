@@ -94,6 +94,7 @@ async def do_check(api, *, image, namespace):
                     k8s_client.V1Container(
                         name='web',
                         image=image,
+                        image_pull_policy='IfNotPresent',
                     ),
                 ],
                 node_name=node,
